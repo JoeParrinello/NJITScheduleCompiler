@@ -4,7 +4,6 @@ var request = require('request');
 var cheerio = require('cheerio');
 var async = require('async');
 var mainApp = require('../app.js');
-var mongoose = require('mongoose');
 var courses = require('../models/courses');
 
 /* GET home page. */
@@ -13,12 +12,25 @@ router.get('/', function(req, res) {
 });
 
 router.get('/scrape', function(req,res){
+  var termJson = "";//'201510';
+  if (req.query.term){
+    //TODO Regex to determine if query string is valid.
+    termJson = req.query.term;
+  } else {
+    termJson = courses.currentSemester;
+  }
+  console.log(termJson);
+
+
   console.log("Dropping All Collections...");
-  courses.CourseModel.remove({}, function(err){
+  courses.CourseModel.remove({semester:termJson}, function(err){
+    console.log(err);
     console.log("Dropped Course Collection...");
-    courses.SectionModel.remove({}, function(err){
+    courses.SectionModel.remove({semester:termJson}, function(err){
+      console.log(err);
       console.log("Dropped Section Collection...");
-      courses.MeetingTimeModel.remove({}, function(err){
+      courses.MeetingTimeModel.remove({semester:termJson}, function(err){
+        console.log(err);
         console.log("Dropped MeetingTime Collection...");
         console.log("Dropping All Collections Complete.");
       });
@@ -35,7 +47,6 @@ router.get('/scrape', function(req,res){
   } else {
     mainApp.scraperSemaphore = true;
     console.log("scraping");
-    var termJson = '201510';
     request.post({url:"https://bnssbpr1.njit.edu/prod/bwckgens.p_proc_term_date", form:{p_calling_proc:"bwckschd.p_disp_dyn_sched", p_term:termJson}}, function(error, response, html) {
       //console.log(html);
       var $ = cheerio.load(html);
@@ -60,9 +71,11 @@ router.get('/scrape', function(req,res){
           method: 'POST'
         }, function (err, resp, html2) {
           var $ = cheerio.load(html2);
-          var ddTitleLength = $('.ddtitle').length
+          //noinspection JSJQueryEfficiency
+          var ddTitleLength = $('.ddtitle').length;
           res.write(" Pulled; Processing "+ddTitleLength+" Classes: ");
-          $('.ddtitle').map(function (i, elem) {
+          //noinspection JSJQueryEfficiency
+          $('.ddtitle').map(function (i) { //removed ,elem)
             var str = $(this).text();
             var splitStr = str.split(" - ");
             if(splitStr[1].toUpperCase()=="HONORS"){
@@ -70,7 +83,9 @@ router.get('/scrape', function(req,res){
             } else {
               sendObj.push({title: splitStr[0], CRN: splitStr[1], catalogCode: splitStr[2], section: splitStr[3]});
             }
-
+            var credits = $(this).parent().next("tr").children("td").html();
+            var creditRegex = /<br>\n.*(\d\.\d+)/g;
+            sendObj[i].credits = creditRegex.exec(credits)[1];
             var timeSelector = $(this).parent().next("tr").children("td").children("table .datadisplaytable").children("tr");
             sendObj[i].objects = [];
             //1-100 Scaling, sorry for the long ifs, to check for the right size.
@@ -101,7 +116,7 @@ router.get('/scrape', function(req,res){
             if(i==Math.floor(ddTitleLength/10)*9){
               res.write("|");
             }
-            timeSelector.each(function(j,elem){
+            timeSelector.each(function(j){ //removed ,elem)
               if(j!=0){
                 for(k = 0; k <$(this).children().first().next().next().text().length; k++){
                   sendObj[i].objects.push({});
@@ -124,11 +139,11 @@ router.get('/scrape', function(req,res){
           });
         });
       }, function (err, results) {
-        res.write("<br><h2>Done Writing!</h2>")
+        res.write("<br><h2>Done Writing!</h2>");
         res.end();
         console.log("Done Scraping!");
         mainApp.scraperSemaphore = false;
-        var ArrayOfAllClasses = []
+        var ArrayOfAllClasses = [];
         results.forEach(function(item){
           item.forEach(function(classItem){
             ArrayOfAllClasses.push(classItem);
@@ -137,14 +152,14 @@ router.get('/scrape', function(req,res){
         });
         //console.log(ArrayOfAllClasses);
         async.eachSeries(ArrayOfAllClasses, function(item, callback){
-          courses.CourseModel.findOne({catalogCode:item.catalogCode}, function(err, Course){
+          courses.CourseModel.findOne({catalogCode:item.catalogCode, semester:termJson}, function(err, Course){
             if(!Course){
-              var newCourse = new courses.CourseModel({catalogCode:item.catalogCode, title:item.title, semester:termJson});
+              var newCourse = new courses.CourseModel({catalogCode:item.catalogCode, title:item.title, credits: item.credits, semester:termJson});
               newCourse.save(function(err, courseProduct){
-                var newSection = new SectionModel({catalogCode:courseProduct.catalogCode, CRN:item.CRN, sectionNumber:item.section});
+                var newSection = new courses.SectionModel({catalogCode:courseProduct.catalogCode, CRN:item.CRN, sectionNumber:item.section, semester:termJson});
                 newSection.save(function(err, sectionProduct){
                   async.eachSeries(item.objects, function(meetingTimeItem, sectionCallback){
-                    var newMeetingTime = new courses.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
+                    var newMeetingTime = new courses.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, semester:termJson, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
                     newMeetingTime.save(function(err){
                       if(err){
                         sectionCallback(err);
@@ -163,10 +178,10 @@ router.get('/scrape', function(req,res){
                 });
               });
             } else {
-              var newSection = new courses.SectionModel({catalogCode:item.catalogCode, CRN:item.CRN, sectionNumber:item.section});
+              var newSection = new courses.SectionModel({catalogCode:item.catalogCode, CRN:item.CRN, sectionNumber:item.section, semester:termJson});
               newSection.save(function(err, sectionProduct){
                 async.eachSeries(item.objects, function(meetingTimeItem, sectionCallback){
-                  var newMeetingTime = new courses.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
+                  var newMeetingTime = new courses.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, semester:termJson, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
                   newMeetingTime.save(function(err){
                     if(err){
                       sectionCallback(err);
@@ -190,6 +205,7 @@ router.get('/scrape', function(req,res){
             console.log(err);
           }
           console.log("Done Storing in MongoDB");
+          courses.findCurrentSemester();
         });
       });
     });

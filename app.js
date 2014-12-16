@@ -10,6 +10,8 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var fetch = require('./routes/fetch');
 
+var courses = require('./models/courses');
+
 var app = express();
 
 // view engine setup
@@ -74,6 +76,8 @@ mongoose.connect('mongodb://localhost/courseScraper', function (err, res) {
         console.log('Succeeded connected to: ' + 'mongodb://localhost/courseScraper');
     }
 });
+
+courses.findCurrentSemester();
 
 module.exports = app;
 
