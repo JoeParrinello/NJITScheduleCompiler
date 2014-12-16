@@ -4,7 +4,9 @@ var request = require('request');
 var cheerio = require('cheerio');
 var async = require('async');
 var mainApp = require('../app.js');
-var courses = require('../models/courses');
+var course = require('../models/course');
+var section = require('../models/section');
+var meetingTime = require('../models/meetingTime');
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -16,21 +18,31 @@ router.get('/scrape', function(req,res){
   if (req.query.term){
     //TODO Regex to determine if query string is valid.
     termJson = req.query.term;
-  } else {
-    termJson = courses.currentSemester;
+  } else if(!course.currentSemester){
+    res.status(400).send({"err":"No Courses in DB. You need to provide explicit semester for the grabbing."});
+    return;
+  }
+  else {
+    termJson = course.currentSemester;
   }
   console.log(termJson);
 
 
   console.log("Dropping All Collections...");
-  courses.CourseModel.remove({semester:termJson}, function(err){
-    console.log(err);
-    console.log("Dropped Course Collection...");
-    courses.SectionModel.remove({semester:termJson}, function(err){
+  course.CourseModel.remove({semester:termJson}, function(err){
+    if(err){
       console.log(err);
-      console.log("Dropped Section Collection...");
-      courses.MeetingTimeModel.remove({semester:termJson}, function(err){
+    }
+    console.log("Dropped Course Collection...");
+    section.SectionModel.remove({semester:termJson}, function(err){
+      if(err){
         console.log(err);
+      }
+      console.log("Dropped Section Collection...");
+      meetingTime.MeetingTimeModel.remove({semester:termJson}, function(err){
+        if(err){
+          console.log(err);
+        }
         console.log("Dropped MeetingTime Collection...");
         console.log("Dropping All Collections Complete.");
       });
@@ -152,14 +164,14 @@ router.get('/scrape', function(req,res){
         });
         //console.log(ArrayOfAllClasses);
         async.eachSeries(ArrayOfAllClasses, function(item, callback){
-          courses.CourseModel.findOne({catalogCode:item.catalogCode, semester:termJson}, function(err, Course){
+          course.CourseModel.findOne({catalogCode:item.catalogCode, semester:termJson}, function(err, Course){
             if(!Course){
-              var newCourse = new courses.CourseModel({catalogCode:item.catalogCode, title:item.title, credits: item.credits, semester:termJson});
+              var newCourse = new course.CourseModel({catalogCode:item.catalogCode, title:item.title, credits: item.credits, semester:termJson});
               newCourse.save(function(err, courseProduct){
-                var newSection = new courses.SectionModel({catalogCode:courseProduct.catalogCode, CRN:item.CRN, sectionNumber:item.section, semester:termJson});
+                var newSection = new section.SectionModel({catalogCode:courseProduct.catalogCode, CRN:item.CRN, sectionNumber:item.section, semester:termJson});
                 newSection.save(function(err, sectionProduct){
                   async.eachSeries(item.objects, function(meetingTimeItem, sectionCallback){
-                    var newMeetingTime = new courses.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, semester:termJson, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
+                    var newMeetingTime = new meetingTime.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, semester:termJson, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
                     newMeetingTime.save(function(err){
                       if(err){
                         sectionCallback(err);
@@ -178,10 +190,10 @@ router.get('/scrape', function(req,res){
                 });
               });
             } else {
-              var newSection = new courses.SectionModel({catalogCode:item.catalogCode, CRN:item.CRN, sectionNumber:item.section, semester:termJson});
+              var newSection = new section.SectionModel({catalogCode:item.catalogCode, CRN:item.CRN, sectionNumber:item.section, semester:termJson});
               newSection.save(function(err, sectionProduct){
                 async.eachSeries(item.objects, function(meetingTimeItem, sectionCallback){
-                  var newMeetingTime = new courses.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, semester:termJson, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
+                  var newMeetingTime = new meetingTime.MeetingTimeModel({CRN:sectionProduct.CRN, day: meetingTimeItem.day, semester:termJson, startTime:meetingTimeItem.startTime, endTime:meetingTimeItem.endTime, location:meetingTimeItem.location});
                   newMeetingTime.save(function(err){
                     if(err){
                       sectionCallback(err);
@@ -205,7 +217,7 @@ router.get('/scrape', function(req,res){
             console.log(err);
           }
           console.log("Done Storing in MongoDB");
-          courses.findCurrentSemester();
+          course.findCurrentSemester();
         });
       });
     });

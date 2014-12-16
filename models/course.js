@@ -10,32 +10,15 @@ var courseSchema = new mongoose.Schema({
     credits:{type:String, require:true}
 });
 
-var sectionSchema = new mongoose.Schema({
-    catalogCode: {type:String, required:true},
-    CRN: {type:String, required:true},
-    sectionNumber: {type:String, required:true},
-    semester:{type:String, required:true},
-    instructor:String
-});
-
-var meetingTimeSchema = new mongoose.Schema({
-    CRN:{type:String, required:true},
-    day:{type:String, required:true},
-    semester:{type:String, required:true},
-    startTime:String,
-    endTime:String,
-    location:String
-});
-
 exports.CourseModel = mongoose.model('Course', courseSchema);
-exports.SectionModel = mongoose.model('Section', sectionSchema);
-exports.MeetingTimeModel = mongoose.model('MeetingTime', meetingTimeSchema);
 
 exports.findCurrentSemester = function(){
     this.CourseModel.where({}).sort("-semester").findOne(function(err, Course){
         if(err){
             console.log(err);
-        } else {
+        } else if (!Course) {
+            console.log("There are no Courses in the DB that are being returned!");
+        }else{
             exports.currentSemester=Course.semester;
             console.log("Set Current Semester As "+Course.semester);
         }
