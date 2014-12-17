@@ -15,8 +15,8 @@ var course = require('./models/course');
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+//app.set('views', path.join(__dirname, 'views'));
+//app.set('view engine', 'jade');
 
 exports.scraperSemaphore = false;
 
@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/',express.static(path.join(__dirname, 'public')));
 
 //find the semester for the request we are handling.
 app.use(function(req,res, next){
@@ -40,12 +40,13 @@ app.use(function(req,res, next){
     console.log("Semester Being Used "+req.query.term);
 });
 
-app.use('/', routes);
-//app.use('/scrape', routes);
+
 
 app.use('/courses', courses);
 
 app.use('/sections', sections);
+
+app.use('/', routes);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');

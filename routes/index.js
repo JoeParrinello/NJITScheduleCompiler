@@ -8,11 +8,6 @@ var course = require('../models/course');
 var section = require('../models/section');
 var meetingTime = require('../models/meetingTime');
 
-/* GET home page. */
-router.get('/', function(req, res) {
-  res.render('index', { title: 'Express' });
-});
-
 router.get('/scrape', function(req,res){
   var termJson = "";//'201510';
   if (req.query.term){
