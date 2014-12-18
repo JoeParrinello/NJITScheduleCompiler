@@ -22,37 +22,32 @@ router.get('/scrape', function(req,res){
   }
   console.log(termJson);
 
-
-  console.log("Dropping All Collections...");
-  course.CourseModel.remove({semester:termJson}, function(err){
-    if(err){
-      console.log(err);
-    }
-    console.log("Dropped Course Collection...");
-    section.SectionModel.remove({semester:termJson}, function(err){
-      if(err){
-        console.log(err);
-      }
-      console.log("Dropped Section Collection...");
-      meetingTime.MeetingTimeModel.remove({semester:termJson}, function(err){
-        if(err){
-          console.log(err);
-        }
-        console.log("Dropped MeetingTime Collection...");
-        console.log("Dropping All Collections Complete.");
-      });
-    });
-  });
-
-
-
-
   res.set('Content-Type','text/html');
   console.log(mainApp.scraperSemaphore);
   if(mainApp.scraperSemaphore){
     res.send("<h1>Scrape Initialized Elsewhere!</h1>");
   } else {
     mainApp.scraperSemaphore = true;
+    console.log("Dropping All Collections...");
+    course.CourseModel.remove({semester:termJson}, function(err){
+      if(err){
+        console.log(err);
+      }
+      console.log("Dropped Course Collection...");
+      section.SectionModel.remove({semester:termJson}, function(err){
+        if(err){
+          console.log(err);
+        }
+        console.log("Dropped Section Collection...");
+        meetingTime.MeetingTimeModel.remove({semester:termJson}, function(err){
+          if(err){
+            console.log(err);
+          }
+          console.log("Dropped MeetingTime Collection...");
+          console.log("Dropping All Collections Complete.");
+        });
+      });
+    });
     console.log("scraping");
     request.post({url:"https://bnssbpr1.njit.edu/prod/bwckgens.p_proc_term_date", form:{p_calling_proc:"bwckschd.p_disp_dyn_sched", p_term:termJson}}, function(error, response, html) {
       //console.log(html);
