@@ -1,7 +1,6 @@
 /**
  * Created by taevis on 12/14/14.
  */
-var q = require("q");
 var express = require('express');
 var router = express.Router();
 var course = require('../models/course');
