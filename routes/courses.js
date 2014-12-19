@@ -1,6 +1,7 @@
 /**
  * Created by taevis on 12/14/14.
  */
+var q = require("q");
 var express = require('express');
 var router = express.Router();
 var course = require('../models/course');
@@ -16,7 +17,11 @@ router.get('/', function(req,res) {
 
 router.get('/:catalogCode', function(req, res){
     course.CourseModel.findOne({catalogCode:req.params.catalogCode, semester:req.query.term}, function(err, Course) {
-        res.send(Course)
+        var Course = Course.toJSON();
+        section.SectionModel.find({catalogCode:req.params.catalogCode, semester:req.query.term}, function(err, Sections) {
+            Course.sections = Sections;
+            res.send(Course);
+        });
     });
 });
 
