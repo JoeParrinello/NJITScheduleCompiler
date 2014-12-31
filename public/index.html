@@ -32,8 +32,8 @@
                         <ui-select-match placeholder="Select Classes...">
                             {{$item.catalogCode}}
                         </ui-select-match>
-                        <ui-select-choices repeat="class in availableClasses">
-                            {{class.catalogCode}}
+                        <ui-select-choices repeat="class in availableClasses | filter:$select.search">
+                            {{class.catalogCode}} - {{class.title}}
                         </ui-select-choices>
                     </ui-select>
                 </div>
