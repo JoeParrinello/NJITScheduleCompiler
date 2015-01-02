@@ -12,4 +12,6 @@ angular.module('MainCtrl', []).controller('mainController',['$location','$scope'
             console.log(data);
         });
     $scope.classes= {};
+
+    $scope.sectionSelected = {};
 }]);

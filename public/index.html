@@ -28,7 +28,7 @@
 
             <div class="row">
                 <div class="col-sm-offset-10 col-sm-2">
-                    <ui-select multiple ng-model="classes.selected">
+                    <ui-select multiple reset-search-input="true" ng-model="classes.selected">
                         <ui-select-match placeholder="Select Classes...">
                             {{$item.catalogCode}}
                         </ui-select-match>
@@ -40,7 +40,10 @@
             </div>
             <div class="row">
                 <div class="col-sm-1">
-
+                    <h3>Sections Selected</h3>
+                    <div class="row" ng-repeat="section in sectionSelected">
+                        {{section.catalogCode}} -- {{section.CRN}}
+                    </div>
                 </div>
                 <div class="col-sm-9">
 
