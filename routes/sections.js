@@ -17,7 +17,15 @@ router.get('/', function(req,res) {
 
 router.get('/:CRN', function(req, res){
     section.SectionModel.findOne({CRN:req.params.CRN, semester:req.query.term}, function(err, Section) {
-        res.send(Section)
+        if(Section){
+            Section = Section.toJSON();
+            meetingTime.MeetingTimeModel.find({CRN:req.params.CRN, semester:req.query.term}, function(err, MeetingTimes) {
+                Section.meetingTimes = MeetingTimes;
+                res.send(Section);
+            });
+        } else {
+            res.status(400).send();
+        }
     });
 });
 

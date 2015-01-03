@@ -17,7 +17,7 @@ router.get('/', function(req,res) {
 router.get('/:catalogCode', function(req, res){
     course.CourseModel.findOne({catalogCode:req.params.catalogCode, semester:req.query.term}, function(err, Course) {
         if(Course){
-            var Course = Course.toJSON();
+            Course = Course.toJSON();
             section.SectionModel.find({catalogCode:req.params.catalogCode, semester:req.query.term}, function(err, Sections) {
                 Course.sections = Sections;
                 res.send(Course);
