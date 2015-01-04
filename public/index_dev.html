@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>NJIT Schedule Compiler</title>
+        <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/angular-ui-select/dist/select.min.css" rel="stylesheet" type="text/css"/>
+
+
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="bower_components/angular/angular.min.js"></script>
+        <script src="bower_components/angular-ui-select/dist/select.min.js"></script>
+
+        <!-- build:remove -->
+        <link href="stylesheets/src/style.css" rel="stylesheet" type="text/css"/>
+        <!-- /build -->
+
+        <!--build:template
+        <link href="stylesheets/build/<%= minifiedcss %>" rel="stylesheet" type="text/css"/>
+        /build-->
+
+        <!-- build:remove -->
+        <script src="js/src/MainController.js"></script>
+        <script src="js/src/app.js"></script>
+        <!-- /build -->
+
+        <!--build:template
+        <script src="js/build/<%= minifiedjs %>"></script>
+        /build-->
+
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">NJIT Schedule Compiler</a>
+            </div>
+        </nav>
+        <div class="container-fluid" ng-app="scheduleCompiler" ng-controller="mainController">
+
+            <div class="row">
+                <div class="col-sm-offset-10 col-sm-2">
+                    <ui-select multiple reset-search-input="true" ng-model="classes.selected">
+                        <ui-select-match placeholder="Select Classes...">
+                            {{$item.catalogCode}}
+                        </ui-select-match>
+                        <ui-select-choices repeat="class in availableClasses | filter:$select.search">
+                            {{class.catalogCode}} - {{class.title}}
+                        </ui-select-choices>
+                    </ui-select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                    <h3>Sections Selected</h3>
+                    <div class="row" ng-repeat="section in sectionSelected">
+                        {{section.catalogCode}} -- {{section.CRN}}
+                    </div>
+                </div>
+                <div class="col-sm-9">
+
+                </div>
+                <div class="col-sm-2">
+
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -35,3 +35,7 @@ node_modules
 #Ignore bower_components
 
 bower_components/
+
+public/js/build
+public/stylesheets/build
+public/index.html
