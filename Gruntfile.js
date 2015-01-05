@@ -8,12 +8,12 @@ module.exports = function (grunt) {
                 sourceMap: true
             },
             buildjs: {
-                src: ['public/js/src/*.js'],
+                src: ['public/js/src/**/*.js'],
                 dest: 'public/js/build/<%= pkg.name %>-<%= pkg.version %>.js'
 
             },
             buildcss: {
-                src: ['public/stylesheets/src/*.css'],
+                src: ['public/stylesheets/src/**/*.css'],
                 dest: 'public/stylesheets/build/<%= pkg.name %>-<%= pkg.version %>.css'
             }
         },
@@ -50,6 +50,11 @@ module.exports = function (grunt) {
                 files: {
                     'public/index.html': ['public/index_dev.html']
                 }
+            },
+            dev:{
+                files: {
+                    'public/index.html': ['public/index_dev.html']
+                }
             }
         },
         clean: {
@@ -65,11 +70,11 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-processhtml');
 
-    grunt.registerTask('default', ['concat', 'cssmin', 'uglify', 'processhtml', 'clean:build']);
+    grunt.registerTask('default', ['concat', 'cssmin', 'uglify', 'processhtml:build', 'clean:build']);
+    grunt.registerTask('development', ['processhtml:dev']);
 
 };
