@@ -65,6 +65,12 @@ module.exports = function (grunt) {
                 src: ['public/stylesheets/build/*.css', 'public/js/build/*.js','public/stylesheets/build/*.css.map', 'public/js/build/*.js.map','public/index.html']
 
             }
+        },
+        watch:{
+            devHtml:{
+                files: ['public/index_dev.html'],
+                tasks: ['processhtml:dev']
+            }
         }
     });
 
@@ -73,6 +79,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-processhtml');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
     grunt.registerTask('default', ['concat', 'cssmin', 'uglify', 'processhtml:build', 'clean:build']);
     grunt.registerTask('development', ['processhtml:dev']);

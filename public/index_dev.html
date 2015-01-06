@@ -3,14 +3,33 @@
     <head lang="en">
         <meta charset="UTF-8">
         <title>NJIT Schedule Compiler</title>
+
+        <!-- build:remove:build -->
+        <link href="bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+        <link href="bower_components/angular-ui-select/dist/select.css" rel="stylesheet" type="text/css"/>
+        <!-- /build -->
+
+        <!--build:template:build
         <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
         <link href="bower_components/angular-ui-select/dist/select.min.css" rel="stylesheet" type="text/css"/>
+        /build -->
 
+        <!-- build:remove:build -->
+        <script src="bower_components/jquery/dist/jquery.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="bower_components/angular/angular.js"></script>
+        <script src="bower_components/angular-ui-select/dist/select.js"></script>
 
+        <script src="vendor/angular-ui-bootstrap/ui-bootstrap-custom-tpls-0.12.0.js"></script>
+        <!-- /build -->
+
+        <!--build:template:build
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
         <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
         <script src="bower_components/angular/angular.min.js"></script>
         <script src="bower_components/angular-ui-select/dist/select.min.js"></script>
+        <script src="vendor/angular-ui-bootstrap/ui-bootstrap-custom-tpls-0.12.0.min.js"></script>
+        /build -->
 
         <!-- build:remove:build -->
         <link href="stylesheets/src/style.css" rel="stylesheet" type="text/css"/>
@@ -39,8 +58,8 @@
         <div class="container-fluid" ng-app="scheduleCompiler" ng-controller="mainController">
 
             <div class="row">
-                <div class="col-sm-offset-10 col-sm-2">
-                    <ui-select multiple reset-search-input="true" ng-model="classes.selected">
+                <div class="col-sm-offset-9 col-sm-3">
+                    <ui-select multiple reset-search-input="true" ng-model="classes.selected" on-select="onSelect($item, $model)" on-remove="onRemove($item,$model)">
                         <ui-select-match placeholder="Select Classes...">
                             {{$item.catalogCode}}
                         </ui-select-match>
@@ -53,15 +72,25 @@
             <div class="row">
                 <div class="col-sm-1">
                     <h3>Sections Selected</h3>
-                    <div class="row" ng-repeat="section in sectionSelected">
-                        {{section.catalogCode}} -- {{section.CRN}}
+                    <div class="row" ng-repeat="section in fetchedClassesAfterSelect">
+                        <div class="col-sm-12">
+                            <p>{{section.catalogCode}} {{section.selected.CRN}}</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-sm-9">
 
                 </div>
                 <div class="col-sm-2">
-
+                    <accordion close-others="true">
+                        <accordion-group heading="{{course.catalogCode}}" ng-repeat="course in fetchedClassesAfterSelect">
+                            <form role="form">
+                                <div class="radio" ng-repeat="section in course.sections">
+                                    <label><input type="radio" name="{{course.catalogCode}}" ng-model="course.selected" ng-value="section.CRN">{{section.sectionNumber}}</label>
+                                </div>
+                            </form>
+                        </accordion-group>
+                    </accordion>
                 </div>
             </div>
         </div>
