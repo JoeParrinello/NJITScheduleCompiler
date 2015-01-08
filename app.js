@@ -78,11 +78,18 @@ app.use(function(err, req, res) {
     });
 });
 
-mongoose.connect('mongodb://localhost/courseScraper', function (err) {
+if(process.env.mongodbServerURI || process.env.environment == "development"){
+
+    mongodbServerURI = process.env.mongodbServerURI || "mongodb://localhost/courseScraper";
+
+}
+
+mongoose.connect(mongodbServerURI, function (err) {
     if (err) {
-        console.log('Unable to connect to: ' + 'mongodb://localhost/courseScraper' + '. ' + err);
+        console.log('Unable to connect to: ' + mongodbServerURI + '. ' + err);
+        process.exit(1);
     } else {
-        console.log('Succeeded connected to: ' + 'mongodb://localhost/courseScraper');
+        console.log('Succeeded connected to: ' + mongodbServerURI);
     }
 });
 
